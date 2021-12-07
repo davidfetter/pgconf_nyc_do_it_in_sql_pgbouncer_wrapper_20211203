@@ -3,15 +3,11 @@
 	<head>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-        <!-- CHANGEME -->
-        <meta property="og:title" content="Title goes here" />
-        <meta property="og:description" content="Subtitle if there is one" />
-        <!-- /CHANGEME -->
+        <meta property="og:title" content="Do It In SQL: pgbouncer_wrapper" />
+        <meta property="og:description" content="" />
         <meta name="author" content="David Fetter" />
 
-        <!-- CHANGEME -->
-		<title>Title goes here</title>
-        <!-- /CHANGEME -->
+		<title>Do It In SQL</title>
 
 		<link rel="stylesheet" href="revealjs/dist/reset.css">
 		<link rel="stylesheet" href="revealjs/dist/reveal.css">
@@ -24,12 +20,229 @@
 		<div class="reveal">
 			<div class="slides">
 				<section>
-                    <!-- CHANGEME -->
-                    <h3>Title goes here</h3>
-                    <!-- CHANGEME -->
+                    Do It In SQL: pgbouncer_wrapper
+                    <aside class="notes">
+                        Thanks to all of you for coming!<br/>
+                        Thanks also to Aiven, my employer, for helping me be here!<br/>
+                    </aside>
                 </section>
-				<section>Slide 1</section>
-				<section>Slide 2</section>
+				<section>
+					And You May Find Yourself
+				</section>
+				<section>
+                    Monitoring A Large System
+				</section>
+				<section>
+					And You May Find Yourself
+				</section>
+				<section>
+					Cursing Up A Blue Streak
+				</section>
+				<section>
+					And You May Find Yourself
+				</section>
+				<section>
+					Bookmarking Monitoring URLs
+				</section>
+				<section>
+					And You May Find Yourself
+				</section>
+				<section>
+					Hoping you saved that query
+				</section>
+				<section>
+					And You May Ask Yourself
+				</section>
+				<section>
+					"Well, How Did I Get Here?"
+				</section>
+				<section>
+                    This may look messy, but it's really a pretty happy situation, or soon can be.
+                    <aside class="notes">
+                        Scroll around this<br/>
+                        We need to find things quickly<br/>
+                        We're about to have unplanned downtime<br/>
+                    </aside>
+                    <section data-markdown>
+                        <textarea data-template>
+                            ```
+                            SHOW clients;
+                             type |       user        |       database       | state  |    addr     | port  | local_addr  | local_port |    connect_time     |    request_time     | wait | wait_us | close_needed |    ptr    |   link    | remote_pid |                         tls
+------+-------------------+----------------------+--------+-------------+-------+-------------+------------+---------------------+---------------------+------+---------+--------------+-----------+-----------+------------+-----------------------------------------------------
+ C    | dsluser           | dsl_shadow           | active | 10.13.3.73  | 46074 | 10.13.1.207 |       5432 | 2021-11-16 06:26:59 | 2021-11-16 21:48:20 |    0 |       0 |            0 | 0x1098ae0 | 0x131ec70 |          0 | TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256/ECDH=prime256v1
+ C    | dsluser           | dsl_shadow           | active | 10.13.3.73  | 46077 | 10.13.1.207 |       5432 | 2021-11-16 06:27:05 | 2021-11-16 21:48:22 |    0 |       0 |            0 | 0x1099608 | 0x131f798 |          0 | TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256/ECDH=prime256v1
+ C    | dsluser           | dsl_shadow           | active | 10.13.3.73  | 46082 | 10.13.1.207 |       5432 | 2021-11-16 06:27:22 | 2021-11-16 21:48:17 |    0 |       0 |            0 | 0x10ed488 | 0x1692270 |          0 | TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256/ECDH=prime256v1
+ C    | dsluser           | dsl_shadow           | active | 10.13.1.216 | 48496 | 10.13.1.207 |       5432 | 2021-11-16 06:31:37 | 2021-11-16 21:48:20 |    0 |       0 |            0 | 0x109ac58 | 0x10ac918 |          0 | TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256/ECDH=prime256v1
+ C    | dsluser           | dsl_shadow           | active | 10.13.1.216 | 48502 | 10.13.1.207 |       5432 | 2021-11-16 06:32:00 | 2021-11-16 21:47:57 |    0 |       0 |            0 | 0x1096b00 | 0x131bfd0 |          0 | TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256/ECDH=prime256v1
+ C    | dsluser           | dsl_shadow           | active | 10.13.1.216 | 48506 | 10.13.1.207 |       5432 | 2021-11-16 06:32:17 | 2021-11-16 21:48:22 |    0 |       0 |            0 | 0x10ec7c8 | 0x131d158 |          0 | TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256/ECDH=prime256v1
+ C    | idpuser           | idp_shadow           | active | 10.13.1.216 | 38800 | 10.13.1.207 |       5432 | 2021-11-15 21:15:02 | 2021-11-16 21:07:06 |    0 |       0 |            0 | 0x10987b0 | 0x10aae00 |          0 | TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256/ECDH=prime256v1
+ C    | idpuser           | idp_shadow           | active | 10.13.3.73  | 36465 | 10.13.1.207 |       5432 | 2021-11-15 21:15:02 | 2021-11-16 21:08:20 |    0 |       0 |            0 | 0x1270820 | 0x131d620 |          0 | TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256/ECDH=prime256v1
+ C    | idpuser           | idp_shadow           | active | 10.13.1.216 | 38803 | 10.13.1.207 |       5432 | 2021-11-15 21:15:14 | 2021-11-16 05:21:10 |    0 |       0 |            0 | 0x10ec960 | 0x10ab130 |          0 | TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256/ECDH=prime256v1
+ C    | idpuser           | idp_shadow           | active | 10.13.3.73  | 37501 | 10.13.1.207 |       5432 | 2021-11-15 22:14:16 | 2021-11-16 21:08:00 |    0 |       0 |            0 | 0x1271b40 | 0x131f138 |          0 | TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256/ECDH=prime256v1
+ C    | idpuser           | idp_shadow           | active | 10.13.1.216 | 39847 | 10.13.1.207 |       5432 | 2021-11-15 22:15:39 | 2021-11-16 21:07:18 |    0 |       0 |            0 | 0x1098e10 | 0x10ae8f8 |          0 | TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256/ECDH=prime256v1
+ C    | idpuser           | idp_shadow           | active | 10.13.3.73  | 37820 | 10.13.1.207 |       5432 | 2021-11-15 22:33:56 | 2021-11-16 21:07:05 |    0 |       0 |            0 | 0x1272cc8 | 0x10adf68 |          0 | TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256/ECDH=prime256v1
+ C    | api      | gcapis_shadow | active | 10.13.0.121 | 48105 | 10.13.1.207 |       5432 | 2021-11-16 06:32:34 | 2021-11-16 21:47:53 |    0 |       0 |            0 | 0x10eb310 | 0x10abc58 |          0 | TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256/ECDH=prime256v1
+ C    | api      | gcapis_shadow | active | 10.13.0.121 | 48123 | 10.13.1.207 |       5432 | 2021-11-16 06:33:34 | 2021-11-16 21:46:40 |    0 |       0 |            0 | 0x10972f8 | 0x10ad908 |          0 | TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256/ECDH=prime256v1
+ C    | api      | gcapis_shadow | active | 10.13.0.121 | 48157 | 10.13.1.207 |       5432 | 2021-11-16 06:34:34 | 2021-11-16 21:44:32 |    0 |       0 |            0 | 0x1272e60 | 0x131b4a8 |          0 | TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256/ECDH=prime256v1
+ C    | api      | gcapis_shadow | active | 10.13.0.121 | 48185 | 10.13.1.207 |       5432 | 2021-11-16 06:35:34 | 2021-11-16 21:40:40 |    0 |       0 |            0 | 0x10ea320 | 0x131e7a8 |          0 | TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256/ECDH=prime256v1
+ C    | api      | gcapis_shadow | active | 10.13.0.121 | 48301 | 10.13.1.207 |       5432 | 2021-11-16 06:41:34 | 2021-11-16 21:48:20 |    0 |       0 |            0 | 0x109a130 | 0x10ac780 |          0 | TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256/ECDH=prime256v1
+ C    | api      | gcapis_shadow | active | 10.13.0.121 | 48366 | 10.13.1.207 |       5432 | 2021-11-16 06:44:34 | 2021-11-16 21:45:52 |    0 |       0 |            0 | 0x1097628 | 0x131d950 |          0 | TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256/ECDH=prime256v1
+ C    | api      | gcapis_shadow | active | 10.13.0.121 | 48411 | 10.13.1.207 |       5432 | 2021-11-16 06:46:34 | 2021-11-16 21:47:40 |    0 |       0 |            0 | 0x1271348 | 0x131ab18 |          0 | TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256/ECDH=prime256v1
+ C    | api      | gcapis_shadow | active | 10.13.0.121 | 48496 | 10.13.1.207 |       5432 | 2021-11-16 06:50:34 | 2021-11-16 21:47:39 |    0 |       0 |            0 | 0x1271e70 | 0x131acb0 |          0 | TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256/ECDH=prime256v1
+ C    | api      | gcapis_shadow | active | 10.13.0.121 | 48617 | 10.13.1.207 |       5432 | 2021-11-16 06:57:34 | 2021-11-16 21:48:03 |    0 |       0 |            0 | 0x1099c68 | 0x10ad5d8 |          0 | TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256/ECDH=prime256v1
+ C    | api      | gcapis_shadow | active | 10.13.0.121 | 48670 | 10.13.1.207 |       5432 | 2021-11-16 06:59:34 | 2021-11-16 21:47:52 |    0 |       0 |            0 | 0x10eb178 | 0x10aec28 |          0 | TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256/ECDH=prime256v1
+ C    | deploy_new_user   | shadow      | active | 10.13.3.232 | 39934 | 10.13.1.207 |       5432 | 2021-11-16 00:04:47 | 2021-11-16 07:13:36 |    0 |       0 |            0 | 0x1274fd8 | 0x10abdf0 |          0 | TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256/ECDH=prime256v1
+ C    | deploy_new_user   | shadow      | active | 10.13.3.232 | 39937 | 10.13.1.207 |       5432 | 2021-11-16 00:04:49 | 2021-11-16 07:07:36 |    0 |       0 |            0 | 0x10eb970 | 0x131cc90 |          0 | TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256/ECDH=prime256v1
+ C    | deploy_new_user   | shadow      | active | 10.13.3.232 | 40009 | 10.13.1.207 |       5432 | 2021-11-16 00:05:05 | 2021-11-16 07:12:08 |    0 |       0 |            0 | 0x1099938 | 0x131e2e0 |          0 | TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256/ECDH=prime256v1
+ C    | deploy_new_user   | shadow      | active | 10.13.3.232 | 40029 | 10.13.1.207 |       5432 | 2021-11-16 00:05:17 | 2021-11-16 07:11:06 |    0 |       0 |            0 | 0x1273988 | 0x10aaf98 |          0 | TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256/ECDH=prime256v1
+ C    | deploy_new_user   | shadow      | active | 10.13.3.232 | 40037 | 10.13.1.207 |       5432 | 2021-11-16 00:05:47 | 2021-11-16 07:12:36 |    0 |       0 |            0 | 0x10eb4a8 | 0x131b7d8 |          0 | TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256/ECDH=prime256v1
+ C    | deploy_new_user   | shadow      | active | 10.13.3.232 | 40118 | 10.13.1.207 |       5432 | 2021-11-16 00:06:14 | 2021-11-16 07:12:06 |    0 |       0 |            0 | 0x1096e30 | 0x131e610 |          0 | TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256/ECDH=prime256v1
+ C    | deploy_new_user   | shadow      | active | 10.13.3.232 | 40141 | 10.13.1.207 |       5432 | 2021-11-16 00:06:47 | 2021-11-16 07:09:36 |    0 |       0 |            0 | 0x1271810 | 0x10adc38 |          0 | TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256/ECDH=prime256v1
+ C    | deploy_new_user   | shadow      | active | 10.13.3.232 | 40219 | 10.13.1.207 |       5432 | 2021-11-16 00:07:19 | 2021-11-16 07:13:06 |    0 |       0 |            0 | 0x1274978 | 0x10acf78 |          0 | TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256/ECDH=prime256v1
+ C    | deploy_new_user   | shadow      | active | 10.13.3.232 | 40316 | 10.13.1.207 |       5432 | 2021-11-16 00:08:20 | 2021-11-16 07:11:36 |    0 |       0 |            0 | 0x1096638 | 0x10af5b8 |          0 | TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256/ECDH=prime256v1
+ C    | deploy_new_user   | shadow      | active | 10.13.3.232 | 40327 | 10.13.1.207 |       5432 | 2021-11-16 00:08:50 | 2021-11-16 07:02:36 |    0 |       0 |            0 | 0x10ea7e8 | 0x10aef58 |          0 | TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256/ECDH=prime256v1
+ C    | deploy_new_user   | shadow      | active | 10.13.5.234 | 43013 | 10.13.1.207 |       5432 | 2021-11-16 00:09:37 | 2021-11-16 07:09:55 |    0 |       0 |            0 | 0x1097af0 | 0x10af750 |          0 | TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256/ECDH=prime256v1
+ C    | deploy_new_user   | shadow      | active | 10.13.5.234 | 43182 | 10.13.1.207 |       5432 | 2021-11-16 00:11:15 | 2021-11-16 06:56:27 |    0 |       0 |            0 | 0x109af88 | 0x131d488 |          0 | TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256/ECDH=prime256v1
+ C    | deploy_new_user   | shadow      | active | 10.13.5.234 | 43198 | 10.13.1.207 |       5432 | 2021-11-16 00:11:46 | 2021-11-16 07:11:28 |    0 |       0 |            0 | 0x10ece28 | 0x131c960 |          0 | TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256/ECDH=prime256v1
+                            ```
+                        </textarea>
+                    </section>
+				</section>
+				<section>
+                    We Need Something Better
+				</section>
+				<section>
+                    It needs to handle big grids
+				</section>
+                <section>
+                    What's going on?
+                    <aside class="notes">
+Every system we care about has a large and growing number of moving parts.<br/>
+We need to see what the parts are doing individually and in groups.<br/>
+We also need to act on those parts individually and in groups.
+                    </aside>
+                </section>
+                <section>
+                    Sensor
+                    <aside class="notes">
+I think of the part that lets us see as a sensor,
+                    </aside>
+                </section>
+                <section>
+                    Actuator
+                    <aside class="notes">
+and the part that lets us act as an actuator.
+                    </aside>
+                </section>
+                <section>
+                    Current Monitoring Systems
+                    <aside class="notes">
+Current systems can look really great...with few enough pieces for a sales demo.
+    - Have a web server answer queries in a straightforward key equals value fashion</br>
+    - Discover that the current model of querying does not have.</br>
+    - Add a piece of grammar. Hurry!</br>
+    - Lather, rinse, repeat.</br>
+    - Wind up with up to 10% of what SQL does!
+                    </aside>
+                </section>
+                <section>
+                    Typical UX
+                    <aside class="notes">
+DagerPuty goes off. Let's have a look at the sensor:<br/>
+How do you rate your chances are of getting that query
+right when it's 3:30am and you're trying to keep
+production from going down.  Fighting your tools every
+step of the way, you managed to figure out what's
+actually going on, which brings us to...<br/><br/>
+
+Actuator:
+Oh, that's somewhere else.  At least I think it is.  What was that command
+again?  What do you mean, you turned off that subsystem?  We are down!  It would be
+understandable if, at this point, someone muttered a Saxon-derived word that
+rhymes with "puck."
+
+                    </aside>
+                </section>
+                <section>
+There's GOT to be a better way.
+                </section>
+                <section>
+                    ...and there is!
+                    <aside class="notes">
+With profound lack of originality--thanks, Peter!--I noticed that there's
+nothing about what SQL does that requires that the data be stored in the
+database.
+                    </aside>
+                </section>
+                <section>
+                    pgbouncer_wrapper
+                    <aside class="notes">
+So I built a toolkit, using PostgreSQL as an app development platform, and not really as storage.<br/>
+
+It lets you fire up your favorite PostgreSQL client--any psql fans in the house? DBeaver? Anyhow, the point of the exercise is that you get to pick your fave!
+                    </aside>
+                </section>
+                <section>
+                    What's in the box?
+                </section>
+                <section>
+                    An EXTENSION
+                </section>
+                <section>
+                    One VIEW per SHOW command
+                </section>
+                <section>
+                    One function per other command
+                </section>
+                <section>
+                    A Perl program
+                    <aside class="notes">
+that's adequate for updating. I may have wasted some
+time in the attempt to automate this further, but
+that's OK. I think I learned something.
+                </section>
+                <section>
+                    SQL!
+                    <aside class="notes">
+Now we're getting somewhere! We can find who's connecting more (or less) than we expect.
+                    </aside>
+                    <section data-markdown>
+                        <textarea data-template>
+                            ```
+SELECT
+    addr, count(*)
+FROM
+    clients
+GROUP BY addr
+ORDER BY count(*) DESC;
+                            ```
+                        </textarea>
+                    </section>
+                </section>
+                <section>
+                    <section data-markdown>
+                        <textarea data-template>
+                            ```sql
+SELECT set('default_pool_size', '300');
+                            ```
+                        </textarea>
+                    </section>
+                </section>
+                <section>
+                    Musings
+                    <aside class="notes">
+You may have noticed that there's no locking here. When you JOIN or otherwise combine views, those SHOW commands get run separately, even if it's in rapid succession. This means there's no "consistent snapshot. Unless somebody comes up with a *really* good reason, I won't even attempt one.
+                    </aside>
+                </section>
+                <section>
+                    Future!
+                    <aside class="notes">
+PGXN? OS packages for the deb-o-sphere and the RPM-o-sphere? Should there be a way to write pgbouncer configurations to disk? And of course, there's the all-important Stuff I didn't Think of...and I'd love to hear from you, now or later.
+                    </aside>
+                </section>
+                <section>
+                    Thank you!!!
+                </section>
 			</div>
 		</div>
 
@@ -72,10 +285,8 @@
             <div id="header-right"></div>
             <div id="footer-left">
                 David Fetter<br/>
-                <!-- CHANGEME -->
-                Event<br/>
-                Date<br/>
-                <!-- /CHANGEME -->
+                PGCOnf NYC 2021<br/>
+                2021/12/03<br/>
                 <a href="mailto:david.fetter@aiven.io">david.fetter@aiven.io</a></div>
             <div id="footer-right">
                 <a href="https://www.aiven.io"
